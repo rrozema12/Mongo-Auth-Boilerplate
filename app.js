@@ -6,7 +6,9 @@ const logger = require('morgan');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const passport = require('passport');
+const mongoose = require('mongoose');
 const consistentResponseMiddleware = require('./src/middleware/response');
+const MongoClient = require('mongodb').MongoClient, assert = require('assert');
 
 const homeRouter = require('./src/routes/home');
 const usersRouter = require('./src/routes/users');
@@ -23,6 +25,11 @@ app.use(cors(corsOptions));
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hbs');
+
+// Connection URL
+
+// Use connect method to connect to the server
+mongoose.connect("mongodb://localhost:27017/testdb", { useNewUrlParser: true });
 
 app.use(logger('dev'));
 app.use(express.json());

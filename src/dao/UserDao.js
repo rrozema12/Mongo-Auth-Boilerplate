@@ -4,7 +4,8 @@ const MongoUserDao = require('./mongo/MongoUserDao');
 
 const UserDao = (() => {
    return {
-
+      insertUser: MongoUserDao.insertUser,
+      findUserByEmail: MongoUserDao.findUserByEmail
    };
 })();
 

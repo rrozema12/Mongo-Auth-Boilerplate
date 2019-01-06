@@ -2,9 +2,9 @@
 
 const util = require('util');
 
-const errors = {};
+const index = {};
 
-errors.AuthError = function AuthError(code, message, statusCode) {
+index.AuthError = function AuthError(code, message, statusCode) {
    this.name = this.constructor.name;
    this.message = message || 'Unauthorized';
    this.code = code || 4000;
@@ -12,15 +12,15 @@ errors.AuthError = function AuthError(code, message, statusCode) {
    Error.captureStackTrace(this, this.constructor);
 };
 
-util.inherits(errors.AuthError, Error);
+util.inherits(index.AuthError, Error);
 
-errors.GenericError = function GenericError(code, message) {
+index.GenericError = function GenericError(code, message) {
    this.name = this.constructor.name;
    this.message = message || 'Error';
    this.code = code || 1000;
    Error.captureStackTrace(this, this.constructor);
 };
 
-util.inherits(errors.GenericError, Error);
+util.inherits(index.GenericError, Error);
 
-module.exports = errors;
+module.exports = index;
