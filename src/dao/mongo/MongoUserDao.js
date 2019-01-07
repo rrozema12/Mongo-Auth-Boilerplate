@@ -2,34 +2,30 @@
 
 const models = require("../../models/index");
 const GenericError = require('../../utils/errors').GenericError;
-const UserModel = models.Users;
+const UsersModel = models.Users;
 
 const MongoUserDao = (() => {
 
    return {
-      insertUser: (data) => {
-         if (!data.hasOwnProperty("username")) {
-            throw new GenericError(3000, "No username provided");
-         }
-         if (!data.hasOwnProperty("password")) {
-            throw new GenericError(3001, "No password provided");
-         }
-         if (!data.hasOwnProperty("email")) {
-            throw new GenericError(3002, "No email provided");
-         }
+      createUser: async (data) => {
          try {
-            return UserModel.create(data);
+            return UsersModel.create(data);
          } catch (err) {
             throw new GenericError(3003, err)
          }
       },
 
-      findUserByEmail: async (email) => {
-         if (!email) {
-            throw new GenericError(3000, "No email provided");
-         }
+      findUserByGoogleId: async (id) => {
          try {
-            return UserModel.findOne({ email: email });
+            return UsersModel.findOne({googleId: id});
+         } catch (err) {
+            throw new GenericError(3001, err)
+         }
+      },
+
+      findUserById: async (id) => {
+         try {
+            return UsersModel.findById(id);
          } catch (err) {
             throw new GenericError(3001, err)
          }

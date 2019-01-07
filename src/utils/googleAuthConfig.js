@@ -5,7 +5,7 @@ const AuthError = require('./errors').AuthError;
 const GoogleStragegy = require('passport-google-oauth20').Strategy;
 const keys = require('../../config/keys');
 
-const GoogleUserService = require('../services/GoogleUserService');
+const UserService = require('../services/UserService');
 
 // allows us to take the user model and generate some unique information, that will
 // be stuffed into a cookie
@@ -15,7 +15,7 @@ passport.serializeUser((user, done) => {
 
 // Get a user model from what we just serialized
 passport.deserializeUser(async (id, done) => {
-   const user = await GoogleUserService.getGoogleUserByUserId(id); // might need to be findById(id) in dao layer
+   const user = await UserService.findUserById(id); // might need to be findById(id) in dao layer
    done(null, user);
 });
 
@@ -32,9 +32,14 @@ passport.use(new GoogleStragegy({
       clientSecret: keys.googleClientSecret,
       callbackURL: '/auth/google/callback'
    }, async (accessToken, refreshToken, profile, done) => {
-      const user = await GoogleUserService.getGoogleUserById(profile.id);
+      const user = await UserService.findUserByGoogleId(profile.id);
       if (!user) {
-         const newUser = await GoogleUserService.createGoogleUser({googleId: profile.id});
+         let data = {};
+         data.googleId = profile.googleId;
+         data.firstName = profile.name.givenName;
+         data.lastName = profile.name.familyName;
+         data.email = profile.emails[0].value;
+         const newUser = await UserService.createUser(data);
          done(null, newUser);
       }
       done(null, user);
