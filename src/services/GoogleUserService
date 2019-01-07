@@ -1,0 +1,40 @@
+'use strict';
+
+const GoogleUserDao = require('../dao/GoogleUserDao');
+const GenericError = require('../utils/errors').GenericError;
+
+const GoogleUserService = (() => {
+   return {
+      createGoogleUser: (data) => {
+         try {
+            return GoogleUserDao.insertGoogleUser(data);
+         } catch (err) {
+            throw new GenericError(2003, err);
+         }
+      },
+
+      getGoogleUserById: async (email) => {
+         if (!email) {
+            throw new GenericError(1000, "No email provided")
+         }
+         try {
+            return GoogleUserDao.findGoogleUserById(email);
+         } catch (err) {
+            throw err
+         }
+      },
+
+      getGoogleUserByUserId: async (id) => {
+         if (!id) {
+            throw new GenericError(1000, "No email provided")
+         }
+         try {
+            return GoogleUserDao.findGoogleUserByUserId(id);
+         } catch (err) {
+            throw err
+         }
+      }
+   }
+})();
+
+module.exports = GoogleUserService;

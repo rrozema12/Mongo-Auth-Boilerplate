@@ -2,16 +2,20 @@ const createError = require('http-errors');
 const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
+const cookieSession = require('cookie-session');
 const logger = require('morgan');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const passport = require('passport');
 const mongoose = require('mongoose');
 const consistentResponseMiddleware = require('./src/middleware/response');
-const MongoClient = require('mongodb').MongoClient, assert = require('assert');
+const passport = require('passport');
+const keys = require('./config/keys');
+
+require("./src/utils/googleAuthConfig");
 
 const homeRouter = require('./src/routes/home');
 const usersRouter = require('./src/routes/users');
+const authRouter = require('./src/routes/auth');
 
 const app = express();
 
@@ -29,12 +33,15 @@ app.set('view engine', 'hbs');
 // Connection URL
 
 // Use connect method to connect to the server
-mongoose.connect("mongodb://localhost:27017/testdb", { useNewUrlParser: true });
+mongoose.connect(keys.db.local, { useNewUrlParser: true });
 
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
+app.use(cookieSession({
+  maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+  keys: [keys.cookieKey]
+}));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', consistentResponseMiddleware().middleware);
@@ -45,6 +52,7 @@ app.use(passport.session());
 
 app.use('/', homeRouter);
 app.use('/users', usersRouter);
+app.use('/auth', authRouter);
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
