@@ -15,6 +15,8 @@ require("./src/utils/googleAuthConfig");
 
 const homeRouter = require('./src/routes/home');
 const authRouter = require('./src/routes/auth');
+const userRouter = require('./src/routes/users');
+
 
 const app = express();
 
@@ -51,6 +53,7 @@ app.use(passport.session());
 
 app.use('/', homeRouter);
 app.use('/auth', authRouter);
+app.use('/users', userRouter);
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
