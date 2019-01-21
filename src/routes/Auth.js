@@ -1,20 +1,23 @@
 'use strict';
 
 const router = require('express-promise-router')();
-const GenericError = require('../utils/errors').GenericError;
-const passport = require('passport');
-const authAccessToken = require('../utils/auth_tool').authAccessToken;
+const AuthService = require('../services/AuthService');
 
-router.get('/google', passport.authenticate('google', {
-   scope: ['email']
-}));
+router.post('/register', async (req, res) => {
+   let data = req.body;
+   const response = await AuthService.createUser(data);
+   res.send(response)
 
-router.get(
-   '/google/callback',
-   passport.authenticate('google'),
-   (req, res) => {
-      res.success("authenticated")
+});
+
+router.post('/login', async (req, res) => {
+   try {
+      let data = req.body;
+      let user = await AuthService.authenticateUserByEmail(data);
+      res.send(user)
+   } catch(err) {
+      return err;
    }
-);
+});
 
 module.exports = router;

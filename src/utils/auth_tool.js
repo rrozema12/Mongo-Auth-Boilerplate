@@ -1,41 +1,21 @@
 'use strict';
 
-const passport = require('passport');
-const AuthError = require('./errors').AuthError;
-const GoogleStragegy = require('passport-google-oauth20').Strategy;
+const jwt = require('jsonwebtoken');
 const keys = require('../../config/keys');
-
-const UserService = require('../services/UserService');
 
 const AuthTool = (() => {
    return {
       authAccessToken: (req, res, next) => {
-         passport.authenticate('google', {
-            scope: ['email']
-         }, (err, user, info) => {
-            if (err) {
-               const responseObject = {
-                  code: err.code,
-                  message: err.message
-               };
+         const token = req.headers['authorization'];
+         if (!token) return res.status(401).send({ auth: false, message: 'No token provided.' });
 
-               return res
-                  .status(err.status || 500)
-                  .json(responseObject);
-            }
+         jwt.verify(token, keys.token, err => {
+            if (err) return res.status(500).send({auth: false, message: 'Failed to authenticate token.'});
 
-            if (!user) {
-               return res
-                  .status(403)
-                  .json(new AuthError(4000, 'Unauthorized', 403));
-            }
-
-            req.user = user;
-            req.authInfo = info;
             next();
-         })(req, res, next);
-      },
-   };
+         });
+      }
+   }
 })();
 
 module.exports = AuthTool;

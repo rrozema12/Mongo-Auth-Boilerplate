@@ -1,74 +1,44 @@
-const createError = require('http-errors');
-const express = require('express');
-const path = require('path');
-const cookieParser = require('cookie-parser');
-const cookieSession = require('cookie-session');
-const logger = require('morgan');
-const cors = require('cors');
+
+// 1. Include Packages
+const express = require("express");
 const bodyParser = require('body-parser');
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
+const cors = require("cors");
+const logger = require('morgan');
+const authRouter = require('./src/routes/Auth');
+const userRouter = require('./src/routes/Users');
 const consistentResponseMiddleware = require('./src/middleware/response');
-const passport = require('passport');
-const keys = require('./config/keys');
 
-require("./src/utils/googleAuthConfig");
+// 2. Include Configuration
+const config = require('./config/keys');
 
-const homeRouter = require('./src/routes/home');
-const authRouter = require('./src/routes/auth');
-const userRouter = require('./src/routes/users');
-
-
+// 3. Initialize the application
 const app = express();
-
+mongoose.connect(config.db.local, { useNewUrlParser: true });
 const corsOptions = {
-  origin: [/localhost.*/],
+  origin: [/localhost.*/, /ec2.*/, /amazonaws.*/],
   credentials: true,
 };
-
 app.use(cors(corsOptions));
-
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'hbs');
-
-// Connection URL
-
-// Use connect method to connect to the server
-mongoose.connect(keys.db.local, { useNewUrlParser: true });
-
 app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieSession({
-  maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-  keys: [keys.cookieKey]
-}));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use('/', consistentResponseMiddleware().middleware);
+// 4. Force https in production
+if (app.get('env') === 'production') {
+  app.use((req, res, next) => {
+    const protocol = req.get('x-forwarded-proto');
+    protocol === 'https' ? next() : res.redirect('https://' + req.hostname + req.url);
+  });
+}
 
+// 5. Connect to MongoDB
 
-app.use(passport.initialize());
-app.use(passport.session());
+// 6. Load app routes
+app.use('/api/*', consistentResponseMiddleware().middleware);
 
-app.use('/', homeRouter);
-app.use('/auth', authRouter);
-app.use('/users', userRouter);
+app.use("/api/auth", authRouter);
+app.use("/api/users", userRouter);
 
-// catch 404 and forward to error handler
-app.use((req, res, next) => {
-  next(createError(404));
-});
-
-// error handler
-app.use((err, req, res, next) => {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
-});
-
+// 7. Start the server
 module.exports = app;
